@@ -124,7 +124,7 @@ when 'migrate-list'
 	if list_id == "invalid" or repo_name.to_s.empty? or org_usr_name.to_s.empty?
 		puts "INVALID ARGUMENTS: Please provide a valid argument for 'migrate-list' command."
 		puts "\n"
-		puts "USAGE:             migrate-list <trello_list_id> <github_repo_name>"
+		puts "USAGE:             migrate-list <trello_list_id> <username_or_organization> <github_repo_name>"
 	else
 		user_list = List.find("#{list_id}")
 		list_tasks = user_list.cards
@@ -150,11 +150,10 @@ when "migrate-board"
 	if board_id == "invalid" or repo_name.to_s.empty? or org_usr_name.to_s.empty?
 		puts "INVALID ARGUMENTS: Please provide a valid argument for 'migrate-board' command."
 		puts "\n"
-		puts "USAGE:             migrate-board <trello_board_id> <github_repo_name>"
+		puts "USAGE:             migrate-board <trello_board_id> <username_or_organization> <github_repo_name>"
 	else
 		user_board = Board.find("#{board_id}")
 		board_tasks = user_board.cards
-		print board_tasks
 		board_tasks.each do |t|
 			title = t.name
 			closed = t.badges["dueComplete"]
@@ -169,23 +168,25 @@ when "migrate-board"
 		end
 	end
 when '--help'
-	puts "USAGE:             show github-repos\nDescription: Shows all repos this user is part of in GitHub." 
-	puts "                   show github-milestones <username_or_organization> <github_repo_name>\nDescription: Shows all milestones that are open in the specified GitHub repo."
-	puts "                   show trello-boards\nDescription: Shows all boards under this Trello account."
-	puts "                   show trello-lists <trello_board_id>\nDescription: Shows all lists under this Trello account."
-	puts "                   migrate-board <trello_board_id> <username_or_organization> <github_repo_name>"
-    puts "                   migrate-list <trello_list_id> <username_or_organization> <github_repo_name>\nDescription: Migrates Trello list of tasks into GitHub repository.Trello tasks will be created as GitHub Issues."
+	puts "USAGE:"
+	puts "\t\tshow github-repos\nDescription: Shows all repos this user is part of in GitHub." 
+	puts "\n\t\tshow github-milestones <username_or_organization> <github_repo_name>\n\t\tDescription: Shows all milestones that are open in the specified GitHub repo."
+	puts "\n\t\tshow trello-boards\n\t\tDescription: Shows all boards under this Trello account."
+	puts "\n\t\tshow trello-lists <trello_board_id>\n\t\tDescription: Shows all lists under this Trello account."
+	puts "\n\t\tmigrate-board <trello_board_id> <username_or_organization> <github_repo_name>\n\t\tDescription: Migrates all tasks on a board into GitHub repository. Trello tasks will be created as issues."
+    puts "\n\t\tmigrate-list <trello_list_id> <username_or_organization> <github_repo_name>\n\t\tDescription: Migrates Trello list of tasks into GitHub repository.Trello tasks will be created as GitHub Issues."
     # puts "                   migrate <trello_list_id> <username_or_organization> <github_milestone_number>\nDescription: Migrates this list of tasks into specified GitHub repository milestone. Trello tasks will be created as GitHub Issues."
 
 else
 	puts "INVALID ARGUMENTS: Please provide a valid command."
 	puts "\n"
-	puts "USAGE:             show github-repos\nDescription: Shows all repos this user is part of in GitHub." 
-	puts "                   show github-milestones <username_or_organization> <github_repo_name>\nDescription: Shows all milestones that are open in the specified GitHub repo."
-	puts "                   show trello-boards\nDescription: Shows all boards under this Trello account."
-	puts "                   show trello-lists <trello_board_id>\nDescription: Shows all lists under this Trello account."
-	puts "                   migrate-board <trello_board_id> <username_or_organization> <github_repo_name>"
-    puts "                   migrate-list <trello_list_id> <username_or_organization> <github_repo_name>\nDescription: Migrates Trello list of tasks into GitHub repository.Trello tasks will be created as GitHub Issues."
+	puts "USAGE:"
+	puts "\t\tshow github-repos\nDescription: Shows all repos this user is part of in GitHub." 
+	puts "\n\t\tshow github-milestones <username_or_organization> <github_repo_name>\n\t\tDescription: Shows all milestones that are open in the specified GitHub repo."
+	puts "\n\t\tshow trello-boards\n\t\tDescription: Shows all boards under this Trello account."
+	puts "\n\t\tshow trello-lists <trello_board_id>\n\t\tDescription: Shows all lists under this Trello account."
+	puts "\n\t\tmigrate-board <trello_board_id> <username_or_organization> <github_repo_name>\n\t\tDescription: Migrates all tasks on a board into GitHub repository. Trello tasks will be created as issues."
+    puts "\n\t\tmigrate-list <trello_list_id> <username_or_organization> <github_repo_name>\n\t\tDescription: Migrates Trello list of tasks into GitHub repository.Trello tasks will be created as GitHub Issues."
     # puts "                   migrate <trello_list_id> <username_or_organization> <github_milestone_number>\nDescription: Migrates this list of tasks into specified GitHub repository milestone. Trello tasks will be created as GitHub Issues."
 
 end
