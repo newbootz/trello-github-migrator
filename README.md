@@ -14,7 +14,7 @@ gem install bundler
 
 Install required gems with bundler
 ```
-budle install
+bundle install
 ```
 
 Don't forget to add your GitHub and Trello personal information to [config.json](https://github.com/newbootz/trello-github-migrator/blob/master/config.json). Once this is done you should be good to go!
