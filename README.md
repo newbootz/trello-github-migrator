@@ -1,7 +1,7 @@
 # trello-github-migrator
 This is a simple command line utility written in Ruby that imports tasks from Trello as issues to a GitHub repository.
 
-This utility leverages the [ruby-trello](https://github.com/jeremytregunna/ruby-trello) Trello library by jeremytreguanna and the [github](https://github.com/piotrmurach/github) GitHub library by piotrmurach.
+This utility leverages the [ruby-trello](https://github.com/jeremytregunna/ruby-trello) library by jeremytreguanna and the [github](https://github.com/piotrmurach/github) library by piotrmurach.
 
 ## Configuration
 Requires Ruby 2.1.0 or newer.
