@@ -6,18 +6,18 @@ This utility leverages the [ruby-trello](https://github.com/jeremytregunna/ruby-
 ## Configuration
 Requires Ruby 2.1.0 or newer.
 
-Install bundler gem if it is not already installed.
+Install bundler gem if you do not already have it installed. You can install it with the command below.
 
 ```
 gem install bundler
 ```
 
-Install required gems with bundler
+Install required gems with bundler as shown below. Run this inside the repository where the Gemfile is found.
 ```
 bundle install
 ```
 
-Don't forget to add your GitHub and Trello personal information to [config.json](https://github.com/newbootz/trello-github-migrator/blob/master/config.json). Once this is done you should be good to go!
+The next step is to add your GitHub and Trello personal information to [config.json](https://github.com/newbootz/trello-github-migrator/blob/master/config.json). The utility will load the information that you provide via this json file. Once this is done you should be good to go!
 
 You can find more info [here](https://developers.trello.com/sandbox) on how to attain the necessary tokens for the Trello API.
 
