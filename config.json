@@ -1,0 +1,15 @@
+{
+	"github": 
+	{
+	"GITHUB_USERNAME": "username",
+	"GITHUB_PA_TOKEN": "your pa token",
+	"GITHUB_API_ENDPOINT": "your github api endpoint",
+	"GITHUB_URL": "your github url"
+	},
+	"trello":
+	{
+	"TRELLO_DEVELOPER_PUBLIC_KEY": "your developer token",
+	"TRELLO_MEMBER_TOKEN": "your member token"
+	}
+
+}
