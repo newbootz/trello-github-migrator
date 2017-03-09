@@ -7,31 +7,34 @@
 #Installation and configuration
 #gem install bundler
 #bundle install
-#Add your authorization information to configuration files (trello_cofig.json & github_config.json)
+#Add your authorization information to configuration files (config.json)
 
 #How to use this utility
-# ruby trello-migrator.rb 
+# ruby trello-migrator.rb <COMMAND> <ARGUMENTS> 
 
+#COMMANDS
 # show github-repos
-# show github-milestones <repo_name>
-
+# show github-milestones <username_or_organization> <repo_name>
 # show trello-boards
 # show trello-lists <board_id>
+# migrate-list <trello_list_id> <username_or_organization> <github_repo_name>
+# migrate-board <trello_board_id> <username_or_organization> <github_repo_name>
 
-# migrate <board_id> <repo_name>
-# migrate <list_id> <repo_name>
-# migrate <list_id> <milestone_number>
-
-# $LOAD_PATH.unshift 'ruby-trello/lib'
+#required libraries
 require 'github_api'
 require 'trello'
 require 'json'
 include Trello
+
+#ignore warnings for Hashie class
 Hashie.logger = Logger.new(nil)
+
+#read the config.json file and load the data
 config_file = File.read('config.json')
 config_hash = JSON.parse(config_file)
 github_data = config_hash["github"]
 trello_data = config_hash["trello"]
+
 #Configuration for Trello CLI
 #__________________________________________________________
 TRELLO_DEVELOPER_PUBLIC_KEY = trello_data["TRELLO_DEVELOPER_PUBLIC_KEY"]
@@ -58,17 +61,19 @@ end
 github = Github.new
 #__________________________________________________________
 
+#Parse the command and execute
 system("clear")
-
 case ARGV[0]
 # 'show' command can list github-repos, github-milestones trello-boards, or trello-lists
 when 'show'
 	ARGV[1].nil? ? show_cmd = "invalid" : show_cmd = ARGV[1]
 
+	#output the user's list of repos to the console
 	if show_cmd == "github-repos"
 		repos = github.repos.list
 		repos.each { |r| puts r["name"] }
 
+	#output the user's list of milestones along with the id for the specified repo
 	elsif show_cmd == "github-milestones"
 		usr_org_name = ARGV[2]
 		repo_name = ARGV[3]
@@ -78,13 +83,15 @@ when 'show'
 			puts "USAGE:             show github-milestones <username_or_organization> <github_repo_name>"
 		else
 			milestones = github.issues.milestones.list user: "#{usr_org_name}", repo: "#{repo_name}", state: "open"
-			milestones.each { |m| puts m["title"]}
+			milestones.each { |m| puts "#{m["title"]} : #{m["number"]}"}
 		end
 
+	#show all boards along with their id for this trello user
 	elsif show_cmd == "trello-boards"
 		all_boards = Board.all
 		all_boards.each { |b| puts "#{b.name} : #{b.id}"}
 
+	#show all trello lists along with their ids for this trello user
 	elsif show_cmd == "trello-lists"
 		board_id = ARGV[2]
 		if board_id.to_s.empty?
@@ -98,6 +105,7 @@ when 'show'
 				board_lists.each { |l| puts "#{l.name} : #{l.id}"}
 			end
 		end
+	#the 'show' command was not valid... display proper usage of the 'show' commands
 	else
 		puts "INVALID ARGUMENTS: Please provide a valid argument for 'show' command."
 		puts "\n"
@@ -106,16 +114,68 @@ when 'show'
 		puts "                   show trello-boards"
 		puts "                   show trello-lists <trello_board_id>"
 	end
-when 'migrate'
-	ARGV[1].nil? ? trello_resource = "invalid" : show_cmd = ARGV[1]
+
+#migrate-list command will migrate all tasks in a trello list into a target GitHub Repository as GitHub issues
+when 'migrate-list'
+	ARGV[1].nil? ? list_id = "invalid" : list_id = ARGV[1]
+	org_usr_name = ARGV[2]
+	repo_name = ARGV[3]
+
+	if list_id == "invalid" or repo_name.to_s.empty? or org_usr_name.to_s.empty?
+		puts "INVALID ARGUMENTS: Please provide a valid argument for 'migrate-list' command."
+		puts "\n"
+		puts "USAGE:             migrate-list <trello_list_id> <github_repo_name>"
+	else
+		user_list = List.find("#{list_id}")
+		list_tasks = user_list.cards
+		list_tasks.each do |t|
+			title = t.name
+			closed = t.badges["dueComplete"]
+			body = t.desc
+			#upload issue
+			result = github.issues.create user: org_usr_name, repo: repo_name, title: "#{title}", body: "#{body}", 
+			assignee: GITHUB_USERNAME
+			issue_number = result["number"]
+			if closed == true
+				github.issues.edit user: org_usr_name, repo: repo_name, number: issue_number.to_i, state: "closed"
+			end
+		end
+	end
+
+#migrate-board command will migrate all tasks in trello board into target GitHub repository as GitHub issues.
+when "migrate-board"
+	ARGV[1].nil? ? board_id = "invalid" : board_id = ARGV[1]
+	org_usr_name = ARGV[2]
+	repo_name = ARGV[3]
+	if board_id == "invalid" or repo_name.to_s.empty? or org_usr_name.to_s.empty?
+		puts "INVALID ARGUMENTS: Please provide a valid argument for 'migrate-board' command."
+		puts "\n"
+		puts "USAGE:             migrate-board <trello_board_id> <github_repo_name>"
+	else
+		user_board = Board.find("#{board_id}")
+		board_tasks = user_board.cards
+		print board_tasks
+		board_tasks.each do |t|
+			title = t.name
+			closed = t.badges["dueComplete"]
+			body = t.desc
+			#upload issue
+			result = github.issues.create user: org_usr_name, repo: repo_name, title: "#{title}", body: "#{body}", 
+			assignee: GITHUB_USERNAME
+			issue_number = result["number"]
+			if closed == true
+				github.issues.edit user: org_usr_name, repo: repo_name, number: issue_number.to_i, state: "closed"
+			end
+		end
+	end
 when '--help'
 	puts "USAGE:             show github-repos\nDescription: Shows all repos this user is part of in GitHub." 
 	puts "                   show github-milestones <username_or_organization> <github_repo_name>\nDescription: Shows all milestones that are open in the specified GitHub repo."
 	puts "                   show trello-boards\nDescription: Shows all boards under this Trello account."
 	puts "                   show trello-lists <trello_board_id>\nDescription: Shows all lists under this Trello account."
-	puts "                   migrate <trello_board_id> <github_repo_name>"
-    puts "                   migrate <trello_list_id> <username_or_organization> <github_repo_name>\nDescription: Migrates Trello list of tasks into GitHub repository.Trello tasks will be created as GitHub Issues."
-    puts "                   migrate <trello_list_id> <username_or_organization> <github_milestone_number>\nDescription: Migrates this list of tasks into specified GitHub repository milestone. Trello tasks will be created as GitHub Issues."
+	puts "                   migrate-board <trello_board_id> <username_or_organization> <github_repo_name>"
+    puts "                   migrate-list <trello_list_id> <username_or_organization> <github_repo_name>\nDescription: Migrates Trello list of tasks into GitHub repository.Trello tasks will be created as GitHub Issues."
+    # puts "                   migrate <trello_list_id> <username_or_organization> <github_milestone_number>\nDescription: Migrates this list of tasks into specified GitHub repository milestone. Trello tasks will be created as GitHub Issues."
 
 else
 	puts "INVALID ARGUMENTS: Please provide a valid command."
@@ -124,8 +184,8 @@ else
 	puts "                   show github-milestones <username_or_organization> <github_repo_name>\nDescription: Shows all milestones that are open in the specified GitHub repo."
 	puts "                   show trello-boards\nDescription: Shows all boards under this Trello account."
 	puts "                   show trello-lists <trello_board_id>\nDescription: Shows all lists under this Trello account."
-	puts "                   migrate <trello_board_id> <github_repo_name>"
-    puts "                   migrate <trello_list_id> <username_or_organization> <github_repo_name>\nDescription: Migrates Trello list of tasks into GitHub repository.Trello tasks will be created as GitHub Issues."
-    puts "                   migrate <trello_list_id> <username_or_organization> <github_milestone_number>\nDescription: Migrates this list of tasks into specified GitHub repository milestone. Trello tasks will be created as GitHub Issues."
+	puts "                   migrate-board <trello_board_id> <username_or_organization> <github_repo_name>"
+    puts "                   migrate-list <trello_list_id> <username_or_organization> <github_repo_name>\nDescription: Migrates Trello list of tasks into GitHub repository.Trello tasks will be created as GitHub Issues."
+    # puts "                   migrate <trello_list_id> <username_or_organization> <github_milestone_number>\nDescription: Migrates this list of tasks into specified GitHub repository milestone. Trello tasks will be created as GitHub Issues."
 
 end
